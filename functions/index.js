@@ -6,16 +6,24 @@ admin.initializeApp(functions.config().firebase);
 
 
 exports.users = functions.https.onRequest((request, response) => {
-    if (request.method === "POST") {
-        return createUser(request, response);
-    } else if (request.method === "GET") {
-        return getUsers(request, response);
-    } else if (request.method === "PUT") {
-        return updateUser(request, response)
+    if (hasAuthorization(request)) {
+        if (request.method === "POST") {
+            return createUser(request, response);
+        } else if (request.method === "GET") {
+            return getUsers(request, response);
+        } else if (request.method === "PUT") {
+            return updateUser(request, response)
+        }
+        return response.status(404).send();
+    } else {
+        response.status(403).send()
     }
-    return response.status(404).send();
-
 });
+
+function hasAuthorization(request) {
+    const authorization = request.get('authorization');
+    return (authorization != null && authorization.startsWith('Bearer '))
+}
 
 function createUser(request, response) {
     admin.auth().createUser(request.body)
@@ -34,7 +42,7 @@ function getUsers(request, response) {
 }
 
 function updateUser(request, response) {
-    admin.auth().verifyIdToken(request.get("Authorization"))
+    admin.auth().verifyIdToken(request.header.aut("Authorization"))
         .then(token => {
             admin.auth().updateUser(token.uid, request)
                 .then(user => response.send(user))
