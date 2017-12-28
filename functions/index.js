@@ -16,7 +16,7 @@ exports.users = functions.https.onRequest((request, response) => {
         }
         return response.status(404).send();
     } else {
-        response.status(403).send()
+        response.status(401).send()
     }
 });
 
@@ -28,7 +28,7 @@ function hasAuthorization(request) {
 function createUser(request, response) {
     admin.auth().createUser(request.body)
         .then(user => response.send(user))
-        .catch(error => response.send(error));
+        .catch(error => response.status(400).send(error));
 }
 
 function getUsers(request, response) {
@@ -38,7 +38,7 @@ function getUsers(request, response) {
         .then(users => {
             users.users = users.users.filter(user => user.providerData.length > 0);
             return response.send(users)
-        }).catch(error => response.send(error));
+        }).catch(error => response.status(400).send(error));
 }
 
 function updateUser(request, response) {
@@ -46,7 +46,7 @@ function updateUser(request, response) {
         .then(token => {
             admin.auth().updateUser(token.uid, request)
                 .then(user => response.send(user))
-        }).catch(error => response.send(error));
+        }).catch(error => response.status(400).send(error));
 }
 
 
