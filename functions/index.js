@@ -37,7 +37,7 @@ function getUsers(request, response) {
     admin.auth().listUsers(maxResults, pageToken)
         .then(users => {
             users.users = users.users.filter(user => user.providerData.length > 0);
-            return response.send(users)
+            return response.send(users.users)
         }).catch(error => response.status(400).send(error));
 }
 
