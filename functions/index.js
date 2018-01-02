@@ -22,7 +22,13 @@ exports.users = functions.https.onRequest((request, response) => {
 
 function hasAuthorization(request) {
     const authorization = request.get('authorization');
-    return (authorization != null && authorization.startsWith('Bearer '))
+    if (authorization.startsWith('Bearer ')) {
+        const token = authorization.split('Bearer ')[1];
+        return admin.auth().verifyIdToken(token)
+            .then(() => true)
+            .catch(() => false)
+    }
+    return false;
 }
 
 function createUser(request, response) {
@@ -42,11 +48,9 @@ function getUsers(request, response) {
 }
 
 function updateUser(request, response) {
-    admin.auth().verifyIdToken(request.header.aut("Authorization"))
-        .then(token => {
-            admin.auth().updateUser(token.uid, request)
-                .then(user => response.send(user))
-        }).catch(error => response.status(400).send(error));
+    const token = request.get('authorization').split('Bearer ')[1];
+    admin.auth().updateUser(token, request)
+        .then(user => response.send(user))
 }
 
 
