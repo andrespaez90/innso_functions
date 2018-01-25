@@ -20,6 +20,50 @@ exports.users = functions.https.onRequest((request, response) => {
     }
 });
 
+
+exports.addBillTrigger = functions.database
+    .ref("bills/{year}/{month}")
+    .onWrite(event => {
+
+        let revenue = 0;
+        let taxes = 0;
+        const bills = event.data.val();
+        console.log('addBillTrigger', bills);
+
+        if(bills != null){;
+            Object.keys(bills).map(function (key, index) {
+                const bill = bills[key];
+                revenue += bill.total;
+                taxes += bill.taxes;
+            });
+        }
+
+        let year = event.params.year;
+        let month = event.params.month
+        let dbRef = admin.database().ref(`finance/${year}/summary/${month}`);
+        dbRef.child('revenue').set(revenue);
+        dbRef.child('taxes').set(taxes);
+
+        return false
+    });
+
+
+exports.onRevenueMonthChange = functions.database
+    .ref("finance/{year}/summary")
+    .onWrite( event => {
+
+        let totalRevenue = 0;
+        const summaries = event.data.val();
+        console.log('onValuesMonthChange', summaries);
+        if(summaries != null){
+            Object.keys(summaries).map(function (key, index) {
+                totalRevenue += summaries[key].revenue;
+            });
+        }
+        return event.data.ref.parent.child('total_revenue').set(totalRevenue);
+    });
+
+
 function hasAuthorization(request) {
     const authorization = request.get('authorization');
     if (authorization.startsWith('Bearer ')) {
