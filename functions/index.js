@@ -99,6 +99,13 @@ exports.onMonthValuesChange = functions.database
         parent.child('total_expenditure').set(totalExpenditure);
         parent.child('total_paid_taxes').set(totalPaidTaxes);
         parent.child('total_received_taxes').set(totalReceivedTaxes);
+
+        parent.child('initial_cash').once('value')
+            .then(value => {
+                let initialCash = value.val() == null ? 0 : value.val();
+                parent.child('total_cash').set(initialCash - totalExpenditure);
+            });
+
         return true;
     });
 
