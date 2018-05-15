@@ -44,7 +44,7 @@ exports.addBillTrigger = functions.database
         dbRef.child('revenue').set(revenue);
         dbRef.child('received_taxes').set(taxes);
 
-        return false
+        return sendNotification('Innso Mobile', 'Nueva factura agregada', 'News');
     });
 
 exports.addExpenseTrigger = functions.database
@@ -69,7 +69,7 @@ exports.addExpenseTrigger = functions.database
         let dbRef = admin.database().ref(`finance/${year}/summary/${month}`);
         dbRef.child('expenses').set(expense);
         dbRef.child('paid_taxes').set(taxes);
-        return false
+        return sendNotification('Innso Mobile', 'Nuevo gasto registrado', 'News');
     });
 
 
@@ -140,6 +140,15 @@ function updateUser(request, response) {
     const token = request.get('authorization').split('Bearer ')[1];
     admin.auth().updateUser(token, request)
         .then(user => response.send(user))
+}
+
+function sendNotification(title, message, channel){
+    const payload = {
+        notification: {
+            title: title,
+            body: message
+        }};
+    return admin.messaging().sendToTopic(channel, payload);
 }
 
 
